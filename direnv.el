@@ -87,6 +87,15 @@ use `default-directory', since there is no file name (or directory)."
   :group 'direnv
   :type '(repeat (symbol :tag "Major mode")))
 
+(defcustom direnv-env-var-functions
+  nil
+  "List of functions to handle modified environment variables.
+
+For each modified environment variable, each function is called
+with arguments NAME VALUE until one returns non-nil."
+  :group 'direnv
+  :type 'hook)
+
 (defvar eshell-path-env)
 
 (defun direnv--directory ()
@@ -275,7 +284,8 @@ a summary message."
           (when (derived-mode-p 'eshell-mode)
             (if (fboundp 'eshell-set-path)
                 (eshell-set-path value)
-              (setq eshell-path-env value))))))))
+              (setq eshell-path-env value))))
+	(run-hook-with-args-until-success 'direnv-env-var-functions name value)))))
 
 ;;;###autoload
 (defun direnv-allow ()
